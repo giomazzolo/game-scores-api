@@ -23,9 +23,9 @@ Before you begin, ensure you have the following installed:
 
 This command starts the PostgreSQL database container in the background.
 
-
-`docker-compose up -d db`
-
+> ```
+> docker-compose up -d db
+> ```
 
 ### 2. Set the Database Connection String
 
@@ -47,25 +47,25 @@ You must set an environment variable in your terminal so your Go application kno
 
 This command runs the Ent migration logic to create or update your database tables according to your schema.
 
-
- `go run ./cmd/migrate`
-
+> ```
+> go run ./cmd/migrate
+> ```
 
 ### 4. Seed the Database (Optional)
 
 If you need to create initial data (like an admin account), run the seeder script.
 
-
-`go run ./cmd/seeder`
-
+> ```
+> go run ./cmd/seeder
+> ```
 
 ### 5. Run the API Server
 
 Finally, run the main application. It will connect to the database and start listening for requests.
 
-
-`go run ./cmd/api`
-
+> ```
+> go run ./cmd/api
+> ```
 
 The API will be available at http://localhost:8080.
 
@@ -78,12 +78,17 @@ This builds and runs the entire application stack (API and Database) inside Dock
 
 This command builds the Go application image, starts the API and database containers, and connects them. The `--build-arg CACHE_BUSTER` flag is used to ensure Docker doesn't use a stale cache and always includes your latest code changes. This is to avoid having to double build on some systems.
 
-#### On Windows (PowerShell):
 
-`docker-compose build --build-arg CACHE_BUSTER=$(Get-Date -UFormat %s); docker-compose up`
+> On Windows (PowerShell):
+> ```
+> docker-compose build --build-arg CACHE_BUSTER=$(Get-Date -UFormat %s); docker-compose up
+> ```
 
-#### On macOS / Linux:
+> On macOS / Linux:
+> ```
+> docker-compose build --build-arg CACHE_BUSTER=$(date +%s) && docker-compose up
+> ```
 
-`docker-compose build --build-arg CACHE_BUSTER=$(date +%s) && docker-compose up`
+Your API will be available at http://localhost:8080.
 
-Your API will be available at http://localhost:8080. To stop all services, press Ctrl + C in the terminal where the containers are running.
+To stop all services, press Ctrl + C in the terminal where the containers are running.
