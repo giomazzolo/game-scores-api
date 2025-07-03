@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // ScoreQuery is the builder for querying Score entities.
@@ -453,8 +454,8 @@ func (sq *ScoreQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Score,
 }
 
 func (sq *ScoreQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Score, init func(*Score), assign func(*Score, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Score)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Score)
 	for i := range nodes {
 		if nodes[i].user_scores == nil {
 			continue

@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // ScoreCreate is the builder for creating a Score entity.
@@ -25,6 +26,14 @@ type ScoreCreate struct {
 // SetValue sets the "value" field.
 func (sc *ScoreCreate) SetValue(i int64) *ScoreCreate {
 	sc.mutation.SetValue(i)
+	return sc
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (sc *ScoreCreate) SetNillableValue(i *int64) *ScoreCreate {
+	if i != nil {
+		sc.SetValue(*i)
+	}
 	return sc
 }
 
@@ -43,7 +52,7 @@ func (sc *ScoreCreate) SetNillableCreatedAt(t *time.Time) *ScoreCreate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (sc *ScoreCreate) SetUserID(id int) *ScoreCreate {
+func (sc *ScoreCreate) SetUserID(id uuid.UUID) *ScoreCreate {
 	sc.mutation.SetUserID(id)
 	return sc
 }
@@ -99,6 +108,10 @@ func (sc *ScoreCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (sc *ScoreCreate) defaults() {
+	if _, ok := sc.mutation.Value(); !ok {
+		v := score.DefaultValue
+		sc.mutation.SetValue(v)
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		v := score.DefaultCreatedAt()
 		sc.mutation.SetCreatedAt(v)
@@ -166,7 +179,7 @@ func (sc *ScoreCreate) createSpec() (*Score, *sqlgraph.CreateSpec) {
 			Columns: []string{score.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

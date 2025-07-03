@@ -15,7 +15,8 @@ type Score struct {
 func (Score) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("value").
-			Positive(),
+			NonNegative().
+			Default(0), // Default score value is 0
 		field.Time("created_at").
 			Default(time.Now),
 	}

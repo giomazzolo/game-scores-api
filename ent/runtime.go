@@ -8,6 +8,8 @@ import (
 	"game-scores/ent/score"
 	"game-scores/ent/user"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -24,6 +26,8 @@ func init() {
 	_ = scoreFields
 	// scoreDescValue is the schema descriptor for value field.
 	scoreDescValue := scoreFields[0].Descriptor()
+	// score.DefaultValue holds the default value on creation for the value field.
+	score.DefaultValue = scoreDescValue.Default.(int64)
 	// score.ValueValidator is a validator for the "value" field. It is called by the builders before save.
 	score.ValueValidator = scoreDescValue.Validators[0].(func(int64) error)
 	// scoreDescCreatedAt is the schema descriptor for created_at field.
@@ -37,11 +41,15 @@ func init() {
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescEmail is the schema descriptor for email field.
-	userDescEmail := userFields[1].Descriptor()
+	userDescEmail := userFields[2].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
 	// userDescPasswordHash is the schema descriptor for password_hash field.
-	userDescPasswordHash := userFields[2].Descriptor()
+	userDescPasswordHash := userFields[3].Descriptor()
 	// user.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func(string) error)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[1].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }

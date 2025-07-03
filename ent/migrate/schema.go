@@ -23,10 +23,10 @@ var (
 	// ScoresColumns holds the columns for the "scores" table.
 	ScoresColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "value", Type: field.TypeInt64},
+		{Name: "value", Type: field.TypeInt64, Default: 0},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "game_scores", Type: field.TypeInt},
-		{Name: "user_scores", Type: field.TypeInt},
+		{Name: "user_scores", Type: field.TypeUUID},
 	}
 	// ScoresTable holds the schema information for the "scores" table.
 	ScoresTable = &schema.Table{
@@ -50,7 +50,7 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password_hash", Type: field.TypeString},

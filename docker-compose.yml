@@ -8,6 +8,8 @@ services:
       # To run locally: $env:DB_SOURCE="postgresql://user:mysecretpassword@localhost:5433/mydatabase?sslmode=disable"
       # Port has changed to 5433 to avoid conflicts with a local Postgres instance
 
+      - JWT_SECRET_KEY=secreto_super_largo_y_mega_seguro_imposible_de_hackear_viva_meli
+
     depends_on: # This now waits for the db to be "healthy" to avoid connection issues (connecting before Postgres is ready)
       db:
         condition: service_healthy

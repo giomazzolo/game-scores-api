@@ -12,6 +12,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // Score is the model entity for the Score schema.
@@ -27,7 +28,7 @@ type Score struct {
 	// The values are being populated by the ScoreQuery when eager-loading is set.
 	Edges        ScoreEdges `json:"edges"`
 	game_scores  *int
-	user_scores  *int
+	user_scores  *uuid.UUID
 	selectValues sql.SelectValues
 }
 
@@ -76,7 +77,7 @@ func (*Score) scanValues(columns []string) ([]any, error) {
 		case score.ForeignKeys[0]: // game_scores
 			values[i] = new(sql.NullInt64)
 		case score.ForeignKeys[1]: // user_scores
-			values[i] = new(sql.NullInt64)
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -118,11 +119,11 @@ func (s *Score) assignValues(columns []string, values []any) error {
 				*s.game_scores = int(value.Int64)
 			}
 		case score.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_scores", value)
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_scores", values[i])
 			} else if value.Valid {
-				s.user_scores = new(int)
-				*s.user_scores = int(value.Int64)
+				s.user_scores = new(uuid.UUID)
+				*s.user_scores = *value.S.(*uuid.UUID)
 			}
 		default:
 			s.selectValues.Set(columns[i], values[i])

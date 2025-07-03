@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // ScoreUpdate is the builder for updating Score entities.
@@ -66,7 +67,7 @@ func (su *ScoreUpdate) SetNillableCreatedAt(t *time.Time) *ScoreUpdate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (su *ScoreUpdate) SetUserID(id int) *ScoreUpdate {
+func (su *ScoreUpdate) SetUserID(id uuid.UUID) *ScoreUpdate {
 	su.mutation.SetUserID(id)
 	return su
 }
@@ -176,7 +177,7 @@ func (su *ScoreUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{score.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -189,7 +190,7 @@ func (su *ScoreUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{score.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -282,7 +283,7 @@ func (suo *ScoreUpdateOne) SetNillableCreatedAt(t *time.Time) *ScoreUpdateOne {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (suo *ScoreUpdateOne) SetUserID(id int) *ScoreUpdateOne {
+func (suo *ScoreUpdateOne) SetUserID(id uuid.UUID) *ScoreUpdateOne {
 	suo.mutation.SetUserID(id)
 	return suo
 }
@@ -422,7 +423,7 @@ func (suo *ScoreUpdateOne) sqlSave(ctx context.Context) (_node *Score, err error
 			Columns: []string{score.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -435,7 +436,7 @@ func (suo *ScoreUpdateOne) sqlSave(ctx context.Context) (_node *Score, err error
 			Columns: []string{score.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

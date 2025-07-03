@@ -19,7 +19,6 @@ func main() {
 		log.Fatal("DB_SOURCE environment variable not set")
 	}
 
-	// ADD THIS LINE TO DEBUG:
 	log.Printf("Attempting to connect with DSN: %s", connStr)
 
 	client, err := ent.Open("postgres", connStr)

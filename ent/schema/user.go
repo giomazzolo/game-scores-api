@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 type User struct {
@@ -15,6 +16,9 @@ func (User) Fields() []ent.Field {
 		field.String("username").
 			Unique().
 			NotEmpty(),
+		field.UUID("id", uuid.UUID{}).
+			Default(uuid.New).
+			Immutable(),
 		field.String("email").
 			Unique().
 			NotEmpty(),

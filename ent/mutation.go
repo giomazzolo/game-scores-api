@@ -15,6 +15,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -536,7 +537,7 @@ type ScoreMutation struct {
 	addvalue      *int64
 	created_at    *time.Time
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uuid.UUID
 	cleareduser   bool
 	game          *int
 	clearedgame   bool
@@ -736,7 +737,7 @@ func (m *ScoreMutation) ResetCreatedAt() {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *ScoreMutation) SetUserID(id int) {
+func (m *ScoreMutation) SetUserID(id uuid.UUID) {
 	m.user = &id
 }
 
@@ -751,7 +752,7 @@ func (m *ScoreMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *ScoreMutation) UserID() (id int, exists bool) {
+func (m *ScoreMutation) UserID() (id uuid.UUID, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -761,7 +762,7 @@ func (m *ScoreMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *ScoreMutation) UserIDs() (ids []int) {
+func (m *ScoreMutation) UserIDs() (ids []uuid.UUID) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1073,7 +1074,7 @@ type UserMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	username      *string
 	email         *string
 	password_hash *string
@@ -1107,7 +1108,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uuid.UUID) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -1157,9 +1158,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1170,12 +1177,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
