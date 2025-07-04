@@ -1,4 +1,8 @@
 services:
+
+# This is a Docker Compose file for a Go API with Postgres, Prometheus, and Grafana
+
+  # Service for the Go API
   api:
     build: .
     ports:
@@ -14,6 +18,7 @@ services:
       db:
         condition: service_healthy
 
+  # Service for Postgres database
   db:
     image: postgres:16-alpine
     restart: always
@@ -31,6 +36,27 @@ services:
       interval: 2s
       timeout: 1s
       retries: 10
+
+  # Service for Prometheus
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    volumes:
+      # Mount a custom config file into the container
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - api
+
+  # Service for Grafana
+  grafana:
+    image: grafana/grafana:9.5.3
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
 
 volumes:
   postgres_data:

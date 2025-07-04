@@ -12,20 +12,26 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"game-scores/ent"
 
 	handler "game-scores/internal/handlers"
-	auth_middleware "game-scores/internal/middleware"
+	api_middleware "game-scores/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
+
+	/* Logging Init ************************************************************/
+
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
 	/* Environmental variable loading ********************************************/
 
@@ -55,24 +61,20 @@ func main() {
 	// API endpoint to check the connection
 
 	r := chi.NewRouter()
+
+	// Add Telemetry middleware (must go before the logger, to wrap everything)
+	r.Use(api_middleware.Telemetry)
+
+	// Middleware logger from chi to see simple console logs
 	r.Use(middleware.Logger)
 
 	// Initialize handlers with dependencies
-	userHandler := &handler.UserHandler{
-		Database:  db,
-		JWTSecret: []byte(jwtSecret),
-	}
+	userHandler := &handler.UserHandler{Database: db, JWTSecret: []byte(jwtSecret)}
+	gameHandler := &handler.GameHandler{Database: db}
+	gameScoresHandler := &handler.GameScoresHandler{Database: db}
 
-	gameHandler := &handler.GameHandler{
-		Database: db,
-	}
-
-	gameScoresHandler := &handler.GameScoresHandler{
-		Database: db,
-	}
-
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("API is running with go-chi and database connection is successful!"))
+	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Server is running!"))
 	})
 
 	r.Post("/register", userHandler.Register)
@@ -81,10 +83,13 @@ func main() {
 	r.Get("/games/{gameID}/scores", gameScoresHandler.ListGameScores)
 	r.Get("/games/{gameID}/statistics", gameScoresHandler.ListGameScoreStatistics)
 
+	// Add Prometheus metrics endpoint
+	r.Handle("/metrics", promhttp.Handler())
+
 	r.Group(func(r chi.Router) {
 
 		// Protected routes that require authentication
-		r.Use(auth_middleware.AuthMiddleware([]byte(jwtSecret)))
+		r.Use(api_middleware.AuthMiddleware([]byte(jwtSecret)))
 
 		r.Post("/games", gameHandler.AddGame)
 		r.Put("/games/{gameID}/scores", gameScoresHandler.UpdateGameScore)
@@ -93,6 +98,8 @@ func main() {
 
 	// Start the server and listen on port 8080
 
-	log.Println("Go API server starting on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	slog.Info("Starting server", "port", 8080)
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
