@@ -200,6 +200,102 @@ You can now create dashboards to visualize the metrics exposed by the API at the
 
 This section outlines all the available endpoints for the Game Scores API, including usage, request bodies, and authorization requirements.
 
+### Flowchart
+
+There are several public API's that allow user registering and login, as well as receiving the list of games, their scores and statistics. Any unauthenticated users can access this.
+
+```mermaid
+graph TD
+    %%{init: {'theme': 'dark', 'themeVariables': {'fontSize': '22px', 'fontFamily': 'Verdana', 'primaryColor': '#fff', 'edgeLabelBackground':'#333', "wrap": "false"},
+
+    "subgraph": {   "curve": "linear",
+                    "markdownAutoWrap":"false",
+                    "wrappingWidth": "600",
+                    "wrap": "false"}}}%%
+    
+    %% ========== PUBLIC API SECTION ==========
+    U(["👤 Unauthenticated User"])
+    style U fill:#6c757d,stroke:#fff,stroke-width:2px,color:white
+    
+    subgraph Public["🌐 Public APIs"]
+        direction LR
+        
+        subgraph Auth["🔑 Authentication"]
+            A["POST /register"]
+            B["POST /login"]
+        end
+        
+        subgraph Info["🔍 Game Info"]
+            D["GET /games"]
+            F["GET /games/{id}/scores"]
+            H["GET /games/{id}/statistics"]
+        end
+
+        U --> Auth
+        U --> Info
+
+        subgraph System["⚙️ System APIs"]
+            PING["GET /ping"]
+            METRICS["GET /metrics"]
+        end
+    end
+    
+    %% --- Styling ---
+    classDef public fill:#343a40,stroke:#17a2b8,stroke-width:2px,color:white;
+    classDef private fill:#343a40,stroke:#fd7e14,stroke-width:2px,color:white;
+    classDef groups fill:transparent,stroke:#6c757d,stroke-dasharray:5 5,color:white
+    class Auth,Info,System groups
+    class A,B,D,F,H,PING,METRICS public;
+    class AG,JG,US private;
+
+```
+
+Private APIs can only be accessed by registered users, when a user logs in, they recieve a JWT Token that is used for authentication when private API's are accessed. Among these, users with the `player` role can either join games and post new scores on them. Users with the `admin` role are able to introduce new games to the database.
+
+```mermaid
+graph TD
+        %%{init: {'theme': 'dark', 'themeVariables': {'fontSize': '24px', 'fontFamily': 'Verdana', 'primaryColor': '#fff', 'edgeLabelBackground':'#333'},
+    
+    "graph": {   "curve": "linear",
+                    "markdownAutoWrap":"false",
+                    "wrappingWidth": "600",
+                    "wrap": "false"}}}%%
+    
+    %% ========== AUTHENTICATION BRIDGE ==========
+    %% ========== PRIVATE API SECTION ==========
+    
+    subgraph Private["🔒 Protected APIs (Requires JWT)"]
+        direction LR
+
+        JWT{💎 JWT Token}
+        style JWT fill:#28a745,stroke:#fff,stroke-width:2px,color:white
+        JWT --> M
+        
+        M(🔐 Auth Middleware) --> RO{Role Check}
+        style M fill:#ffc107,stroke:#fff,stroke-width:2px,color:black
+        style RO fill:#dc3545,stroke:#fff,stroke-width:2px,color:white
+        
+        RO -->|Admin Role| Admin
+        RO -->|Player Role| Player
+        
+        subgraph Admin["👑 Admin"]
+            AG["POST /games"]
+        end
+        
+        subgraph Player["🕹️ Player"]
+            JG["POST /games/{id}/join"]
+            US["PUT /games/{id}/scores"]
+        end
+    end
+    
+    %% --- Styling ---
+    classDef public fill:#343a40,stroke:#17a2b8,stroke-width:2px,color:white;
+    classDef private fill:#343a40,stroke:#fd7e14,stroke-width:2px,color:white;
+    classDef groups fill:transparent,stroke:#6c757d,stroke-dasharray:5 5,color:white
+    class Auth,Info,System groups
+    class A,B,D,F,H,PING,METRICS public;
+    class AG,JG,US private;
+```
 ---
 
 ## 🔑 Authentication Endpoints
