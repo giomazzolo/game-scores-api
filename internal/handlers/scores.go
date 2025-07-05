@@ -290,7 +290,7 @@ func (h *GameScoresHandler) ListGameScoreStatistics(w http.ResponseWriter, r *ht
 		mode = []int64{0}
 	} else {
 		calculateMean(scoresArray, &mean)
-		calculateMedian(scoresArray, &median)
+		calculateMedian(scoresArray, &median) // Scores are already sorted in descending order, provided by the query
 		calculateMode(scoresArray, &mode)
 	}
 
@@ -340,6 +340,10 @@ func calculateMode(scores []int64, mode *[]int64) {
 		if frequency[score] > maxFreq {
 			maxFreq = frequency[score]
 		}
+	}
+	if maxFreq == 1 {
+		*mode = []int64{} // No mode if all scores are unique
+		return
 	}
 	for score, freq := range frequency {
 		if freq == maxFreq {

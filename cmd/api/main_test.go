@@ -75,7 +75,8 @@ const (
 	adminPassword    = "admin123!"
 	adminEmail       = "admin@example.com"
 	numPlayersToTest = 100
-	concurrency      = 10 // How many requests to run in parallel
+	maxScore         = 100 // Maximum score a player can have
+	concurrency      = 10  // How many requests to run in parallel
 )
 
 // --- Helper Structs ---
@@ -380,7 +381,7 @@ func testUpdateScoreAPI(t *testing.T, state *TestState) {
 			defer wg.Done()
 			defer func() { <-sem }()
 			for _, gameID := range p.GameIDs {
-				score := min(rand.Int63n(10000), rand.Int63n(10000))
+				score := min(rand.Int63n(maxScore), rand.Int63n(maxScore))
 				url := fmt.Sprintf("%s/games/%d/scores", apiURL, gameID)
 				body, _ := json.Marshal(handler.UpdateScoreRequest{Score: fmt.Sprintf("%d", score)})
 				resp, _ := makeRequest(t, "PUT", url, bytes.NewBuffer(body), p.Token)
