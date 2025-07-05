@@ -7,6 +7,7 @@ import (
 
 	"game-scores/ent"
 
+	"game-scores/internal/decoder"
 	auth_middleware "game-scores/internal/middleware"
 )
 
@@ -45,8 +46,9 @@ func (h *GameHandler) AddGame(w http.ResponseWriter, r *http.Request) {
 
 	var req AddGameRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	err := decoder.DecodeJSONBody(w, r, &req)
+	if err != nil {
+		log.Printf("Failed to decode add game request: %v", err)
 		return
 	}
 

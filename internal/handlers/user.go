@@ -4,12 +4,21 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"game-scores/ent"
 	"game-scores/ent/user"
 	"game-scores/internal/auth"
+	"game-scores/internal/decoder"
 
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	// MinimumPasswordLength is the minimum length for user passwords.
+	MinimumPasswordLength = 8
+	MinumumUsernameLength = 3
+	MaximumUsernameLength = 64
 )
 
 // UserHandler holds dependencies for user-related handlers.
@@ -39,8 +48,25 @@ type LoginResponse struct {
 // Register handles user creation.
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	err := decoder.DecodeJSONBody(w, r, &req)
+	if err != nil {
+		log.Printf("Failed to decode registration request: %v", err)
+		return
+	}
+
+	// Validate the username length
+	if len(req.Username) < MinumumUsernameLength {
+		http.Error(w, "Username must be at least "+strconv.Itoa(MinumumUsernameLength)+" characters long", http.StatusBadRequest)
+		return
+	}
+	if len(req.Username) > MaximumUsernameLength {
+		http.Error(w, "Username must not exceed "+strconv.Itoa(MaximumUsernameLength)+" characters", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the password length
+	if len(req.Password) < MinimumPasswordLength {
+		http.Error(w, "Password must be at least "+strconv.Itoa(MinimumPasswordLength)+" characters long", http.StatusBadRequest)
 		return
 	}
 
@@ -60,6 +86,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		SetPasswordHash(string(hashedPassword)).
 		Save(r.Context())
 
+	if ent.IsConstraintError(err) {
+		log.Printf("User already exists: %v", err)
+		http.Error(w, "User already exists", http.StatusConflict)
+		return
+	}
 	if err != nil {
 		log.Printf("Failed to create user: %v", err)
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
@@ -74,8 +105,10 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // Login handles user authentication and JWT issuance.
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+
+	err := decoder.DecodeJSONBody(w, r, &req)
+	if err != nil {
+		log.Printf("Failed to decode login request: %v", err)
 		return
 	}
 

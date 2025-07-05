@@ -10,6 +10,7 @@ import (
 	"game-scores/ent/game"
 	"game-scores/ent/score"
 	"game-scores/ent/user"
+	"game-scores/internal/decoder"
 	auth_middleware "game-scores/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
@@ -176,8 +177,10 @@ func (h *GameScoresHandler) UpdateGameScore(w http.ResponseWriter, r *http.Reque
 
 	// Decode the new score from the request body.
 	var req UpdateScoreRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+
+	err = decoder.DecodeJSONBody(w, r, &req)
+	if err != nil {
+		log.Printf("Failed to decode update score request: %v", err)
 		return
 	}
 
