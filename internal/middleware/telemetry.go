@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -33,24 +34,29 @@ var (
 // Telemetry is a middleware that records Prometheus metrics and logs requests.
 func Telemetry(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Start a timer
 		startTime := time.Now()
-
-		// Use a response writer wrapper to capture the status code
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
 		// Call the next handler in the chain
 		next.ServeHTTP(ww, r)
 
-		// Record the duration and increment the request counter
+		// Get the route pattern from the chi context.
+		routePattern := chi.RouteContext(r.Context()).RoutePattern()
+		if routePattern == "" {
+			// If no route was matched, use the raw path.
+			// This can happen for 404s.
+			routePattern = r.URL.Path
+		}
+
+		// Record metrics with the clean route pattern.
 		duration := time.Since(startTime)
-		httpRequestDuration.WithLabelValues(r.Method, r.URL.Path).Observe(duration.Seconds())
-		httpRequestsTotal.WithLabelValues(r.Method, r.URL.Path, http.StatusText(ww.Status())).Inc()
+		httpRequestDuration.WithLabelValues(r.Method, routePattern).Observe(duration.Seconds())
+		httpRequestsTotal.WithLabelValues(r.Method, routePattern, http.StatusText(ww.Status())).Inc()
 
 		// Log the request details using slog
 		slog.Info("request handled",
 			"method", r.Method,
-			"path", r.URL.Path,
+			"path", routePattern,
 			"status", ww.Status(),
 			"duration", duration,
 			"user_agent", r.UserAgent(),
