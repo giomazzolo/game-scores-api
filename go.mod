@@ -20,6 +20,7 @@ require (
 	ariga.io/atlas v0.35.0 // indirect
 	entgo.io/ent v0.14.4 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
+	github.com/anandvarma/namegen v1.1.1
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
