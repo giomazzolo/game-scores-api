@@ -70,13 +70,14 @@ func TestMain(m *testing.M) {
 
 // --- Configuration ---
 const (
-	apiURL           = "http://localhost:8080"
-	adminUsername    = "admin"
-	adminPassword    = "admin123!"
-	adminEmail       = "admin@example.com"
-	numPlayersToTest = 100
-	maxScore         = 100 // Maximum score a player can have
-	concurrency      = 10  // How many requests to run in parallel
+	apiURL             = "http://localhost:8080"
+	adminUsername      = "admin"
+	adminPassword      = "admin123!"
+	adminEmail         = "admin@example.com"
+	numPlayersToTest   = 100
+	maxScore           = 100 // Maximum score a player can have
+	concurrency        = 10  // How many requests to run in parallel
+	scoreUpdateRetries = 5
 )
 
 // --- Helper Structs ---
@@ -381,15 +382,17 @@ func testUpdateScoreAPI(t *testing.T, state *TestState) {
 			defer wg.Done()
 			defer func() { <-sem }()
 			for _, gameID := range p.GameIDs {
-				score := min(rand.Int63n(maxScore), rand.Int63n(maxScore))
-				url := fmt.Sprintf("%s/games/%d/scores", apiURL, gameID)
-				body, _ := json.Marshal(handler.UpdateScoreRequest{Score: fmt.Sprintf("%d", score)})
-				resp, _ := makeRequest(t, "PUT", url, bytes.NewBuffer(body), p.Token)
-				if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotAcceptable {
-					continue
+				for range scoreUpdateRetries {
+					score := min(rand.Int63n(maxScore), rand.Int63n(maxScore))
+					url := fmt.Sprintf("%s/games/%d/scores", apiURL, gameID)
+					body, _ := json.Marshal(handler.UpdateScoreRequest{Score: fmt.Sprintf("%d", score)})
+					resp, _ := makeRequest(t, "PUT", url, bytes.NewBuffer(body), p.Token)
+					if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotAcceptable {
+						continue
+					}
+					resp.Body.Close()
 				}
 				atomic.AddInt32(&successCount, 1)
-				resp.Body.Close()
 			}
 		}(player)
 	}

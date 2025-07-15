@@ -1,0 +1,242 @@
+{
+	"info": {
+		"_postman_id": "113f14ed-21d5-4960-939d-9fc1850e5f49",
+		"name": "game-scores-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "46778491",
+		"_collection_link": "https://gio-215574.postman.co/workspace/Gio's-Workspace~4ae28bbf-e008-4434-869a-ecb9b0e02e52/collection/46778491-113f14ed-21d5-4960-939d-9fc1850e5f49?action=share&source=collection_link&creator=46778491"
+	},
+	"item": [
+		{
+			"name": "Public",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{address}}/ping"
+					},
+					"response": []
+				},
+				{
+					"name": "List Games",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"const gameIds = response.map(game => game.id);\r",
+									"const selectedGameId = gameIds[0];\r",
+									"\r",
+									"// Save all gameIds and save the first gameId as selectedGameId_temp\r",
+									"\r",
+									"pm.environment.set(\"selectedGameId_temp\", selectedGameId);\r",
+									"pm.environment.set('gameIds', gameIds);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{address}}/games"
+					},
+					"response": []
+				},
+				{
+					"name": "Game Scores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{address}}/games/{{selectedGameId_temp}}/scores"
+					},
+					"response": []
+				},
+				{
+					"name": "Game Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{address}}/games/{{selectedGameId_temp}}/statistics"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save admin token from response to environment variable\r",
+									"const response = pm.response.json();\r",
+									"pm.environment.set(\"authTokenAdmin\", response.token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{address}}/login"
+					},
+					"response": []
+				},
+				{
+					"name": "Add New Game",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{authTokenAdmin}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"game_name\": \"Plants Vs Zombies\",\r\n    \"description\": \"Me vegan zombie, me environmentally friendly.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{address}}/games"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Player",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{authTokenAdmin}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"new_player\",\r\n    \"email\": \"player@example.com\",\r\n    \"password\": \"a_strong_password\"\r\n}"
+						},
+						"url": "{{address}}/register"
+					},
+					"response": []
+				},
+				{
+					"name": "Player Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save player token from response to environment variable\r",
+									"const response = pm.response.json();\r",
+									"pm.environment.set(\"authTokenPlayer\", pm.response.json().token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"new_player\",\r\n    \"password\": \"a_strong_password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{address}}/login"
+					},
+					"response": []
+				},
+				{
+					"name": "Join Game",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{authTokenPlayer}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"url": "{{address}}/games/{{selectedGameId_temp}}/join"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Score",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{authTokenPlayer}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"score\": \"5\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{address}}/games/{{selectedGameId_temp}}/scores"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

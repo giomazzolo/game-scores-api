@@ -73,7 +73,19 @@ docker-compose build --build-arg CACHE_BUSTER=$(Get-Date -UFormat %s); docker-co
 
 ## 🧪 Running the Integration Tests
 
-The project includes a full integration test suite that automatically sets up and tears down its own environment.
+The project includes an integration test suite. After it runs once, it keeps all the generated test data in the database for further testing or control.
+The test suit does the following by calling all the respective APIs:
+* Adds a `admin` account and logs in as admin
+* Creates 100 random `players` and registers them in batches. Includes some expected to fail edge cases.
+* Logs in all the `players` in batches. Includes some expected to fail edge cases.
+* The `admin` adds 10 games, with re-adding game edge case.
+* Lists all games.
+* All `players` join between 1 and 4 random games.
+* All `players` update their scores on each game they have joined with a random score between a range.
+* Lists the `Scores` of all games.
+* Lists the `Statistics` of all games.
+
+The testing mostly cares about the API service working as expected rather than verifying on each step if the response data is the expected one.
 
 **To run all tests, all containers must be running.**
 Execute the following command from the project root:
@@ -107,6 +119,21 @@ ok      game-scores/cmd/api     4.881s
 API coverage: `login`, `register`, `add_game`, `list_games`, `join_games`, `update_score`, `list_scores`, `list_statistics`.
 
 The API's `ping` and `metrics` are not included in testing.
+
+## 📬 Testing with Postman
+
+Each API individually with Postman, the collection json is included inside the root folder in `configs/postman` which can be imported for individual testing.
+
+To import Postman collection:
+
+* Inside Postman, select `"Import"`
+* Drag and Drop the file or select it from it's folder: `configs/postman/game-scores-api.postman_collection.json`. The collection should import correctly.
+* Go to `Environments` on the left side-bar and create a new Enviroment.
+* Add a variable called `address` and set it to `http://localhost:8080`
+
+The integration test script can be run to pre-populate the database with games, players and scores, to aid with individual testing.
+
+*Note: The Docker container must be running to test the APIs.*
 
 ---
 
